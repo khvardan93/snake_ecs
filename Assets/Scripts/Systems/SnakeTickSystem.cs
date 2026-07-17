@@ -1,7 +1,6 @@
 ﻿using Unity.Burst;
 using Unity.Entities;
 using Unity.Mathematics;
-using Unity.Transforms;
 
 namespace Snake
 {
@@ -72,12 +71,6 @@ namespace Snake
                 RespawnFood(ref state, configEntity, config);
             else
                 segments.RemoveAt(segments.Length - 1);
-            
-            foreach (var transform in SystemAPI.Query<RefRW<LocalTransform>>()
-                         .WithAll<HeadMarker>())
-            {
-                transform.ValueRW.Position = new float3(newHead.x, newHead.y, 0f);
-            }
         }
         
         static void RespawnFood(ref SystemState state, Entity configEntity, in GameConfig config)
@@ -97,7 +90,9 @@ namespace Snake
                     if (math.all(segments[i].Position == pos)) { onSnake = true; break; }
             } while (onSnake && ++guard < 1000);
 
-            em.SetComponentData(configEntity, new FoodState { Position = pos });
+            var food = em.GetComponentData<FoodState>(configEntity);
+            food.Position = pos;
+            em.SetComponentData(configEntity, food);
             em.SetComponentData(configEntity, snake); // <-- the important line
         }
     }

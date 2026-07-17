@@ -7,6 +7,9 @@ namespace Snake
     {
         public int2 GridSize;
         public float TickInterval;
+        
+        public Entity SegmentPrefab;
+        public Entity FoodPrefab;
     }
 
     public struct SnakeState : IComponentData
@@ -21,12 +24,19 @@ namespace Snake
     public struct FoodState : IComponentData
     {
         public int2 Position;
+        public Entity RenderEntity;
     }
     
     [InternalBufferCapacity(0)]
     public struct SnakeSegmentElement : IBufferElementData
     {
         public int2 Position; // index 0 = head
+    }
+    
+    [InternalBufferCapacity(0)]
+    public struct SegmentEntityElement : IBufferElementData
+    {
+        public Entity Value;
     }
     
     public struct HeadMarker : IComponentData { }
