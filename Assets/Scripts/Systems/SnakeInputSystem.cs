@@ -23,6 +23,18 @@ namespace Snake
             {
                 state.ValueRW.PendingDirection = dir;
             }
+            
+            if (!state.ValueRO.Alive && Input.GetKeyDown(KeyCode.Space))
+            {
+                var entity = SystemAPI.GetSingletonEntity<SnakeState>();
+                SystemAPI.GetBuffer<SnakeSegmentElement>(entity).Clear();
+
+                state.ValueRW.Alive            = true;
+                state.ValueRW.HeadDirection    = new int2(1, 0);
+                state.ValueRW.PendingDirection = new int2(1, 0);
+                state.ValueRW.TickTimer        = 0f;
+                state.ValueRW.Rng = Unity.Mathematics.Random.CreateFromIndex((uint)UnityEngine.Time.frameCount + 1);
+            }
         }
     }
 }

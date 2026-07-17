@@ -14,6 +14,13 @@ namespace Snake
         public int2 HeadDirection;
         public float TickTimer;
         public int2 PendingDirection;
+        public Random Rng;
+        public bool Alive;
+    }
+    
+    public struct FoodState : IComponentData
+    {
+        public int2 Position;
     }
     
     [InternalBufferCapacity(0)]
@@ -23,4 +30,6 @@ namespace Snake
     }
     
     public struct HeadMarker : IComponentData { }
+    
+    public struct FoodMarker : IComponentData { }
 }

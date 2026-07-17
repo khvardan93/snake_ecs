@@ -24,8 +24,12 @@ namespace Snake
 
                 AddComponent(entity, new SnakeState
                 {
-                    HeadDirection = new int2(1, 0)
+                    HeadDirection = new int2(1, 0),
+                    Rng = Unity.Mathematics.Random.CreateFromIndex(0x9F6ABC1u),
+                    Alive = true
                 });
+                
+                AddComponent(entity, new FoodState());
                 
                 AddBuffer<SnakeSegmentElement>(entity);
             }

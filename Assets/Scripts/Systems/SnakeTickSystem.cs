@@ -2,7 +2,6 @@
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
-using UnityEngine;
 
 namespace Snake
 {
@@ -28,9 +27,16 @@ namespace Snake
             {
                 int2 center = config.GridSize / 2;
                 for (int i = 0; i < 3; i++)
+                {
                     segments.Add(new SnakeSegmentElement { Position = new int2(center.x - i, center.y) });
+                }
+                
+                RespawnFood(ref state, configEntity, config);
                 return;
             }
+            
+            if (!snake.ValueRO.Alive)
+                return;
 
             // --- Tick accumulator (unchanged) ---
             snake.ValueRW.TickTimer += SystemAPI.Time.DeltaTime;
@@ -41,14 +47,58 @@ namespace Snake
             // --- Move: new head in front, drop the tail ---
             snake.ValueRW.HeadDirection = snake.ValueRO.PendingDirection;
             int2 newHead = segments[0].Position + snake.ValueRO.HeadDirection;
+            
+            if (math.any(newHead < 0) || math.any(newHead >= config.GridSize))
+            {
+                snake.ValueRW.Alive = false;
+                return;
+            }
+            
+            bool ate = math.all(newHead == SystemAPI.GetComponent<FoodState>(configEntity).Position);
+
+            int checkCount = ate ? segments.Length : segments.Length - 1;
+            for (int i = 0; i < checkCount; i++)
+            {
+                if (math.all(segments[i].Position == newHead))
+                {
+                    snake.ValueRW.Alive = false;
+                    return;
+                }
+            }
+            
             segments.Insert(0, new SnakeSegmentElement { Position = newHead });
-            segments.RemoveAt(segments.Length - 1);
+            
+            if (ate)
+                RespawnFood(ref state, configEntity, config);
+            else
+                segments.RemoveAt(segments.Length - 1);
             
             foreach (var transform in SystemAPI.Query<RefRW<LocalTransform>>()
                          .WithAll<HeadMarker>())
             {
                 transform.ValueRW.Position = new float3(newHead.x, newHead.y, 0f);
             }
+        }
+        
+        static void RespawnFood(ref SystemState state, Entity configEntity, in GameConfig config)
+        {
+            var em = state.EntityManager;
+            var segments = em.GetBuffer<SnakeSegmentElement>(configEntity);
+            var snake = em.GetComponentData<SnakeState>(configEntity);
+
+            int2 pos;
+            bool onSnake;
+            int guard = 0;
+            do
+            {
+                pos = snake.Rng.NextInt2(int2.zero, config.GridSize);
+                onSnake = false;
+                for (int i = 0; i < segments.Length; i++)
+                    if (math.all(segments[i].Position == pos)) { onSnake = true; break; }
+            } while (onSnake && ++guard < 1000);
+
+            em.SetComponentData(configEntity, new FoodState { Position = pos });
+            em.SetComponentData(configEntity, snake); // <-- the important line
         }
     }
 }
