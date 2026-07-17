@@ -23,8 +23,6 @@ namespace Snake
             var config = em.GetComponentData<GameConfig>(configEntity);
 
             int segCount = em.GetBuffer<SnakeSegmentElement>(configEntity).Length;
-            if (segCount == 0)
-                return; // init tick hasn't run yet this game
 
             // --- 1. Grow the render pool to match the sim ---
             while (em.GetBuffer<SegmentEntityElement>(configEntity).Length < segCount)
@@ -45,17 +43,18 @@ namespace Snake
 
             // --- 3. Position everything (no structural changes below this line) ---
             var segments = em.GetBuffer<SnakeSegmentElement>(configEntity);
-            var renderBuffer = em.GetBuffer<SegmentEntityElement>(configEntity);
+            var renderNow = em.GetBuffer<SegmentEntityElement>(configEntity);
             float2 half = (float2)(config.GridSize - 1) * 0.5f;
 
-            for (int i = 0; i < segCount; i++)
+            for (int i = 0; i < renderNow.Length; i++)
             {
-                em.SetComponentData(renderBuffer[i].Value, new LocalTransform
+                bool active = i < segCount;
+                em.SetComponentData(renderNow[i].Value, new LocalTransform
                 {
-                    Position = new float3(segments[i].Position.x - half.x,
-                                          segments[i].Position.y - half.y, 0f),
+                    Position = active ? new float3(segments[i].Position.x - half.x,
+                        segments[i].Position.y - half.y, 0f) : float3.zero,
                     Rotation = quaternion.identity,
-                    Scale    = i == 0 ? 0.95f : 0.85f
+                    Scale = i == 0 ? 0.95f : 0.85f
                 });
             }
 
