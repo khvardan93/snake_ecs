@@ -26,6 +26,8 @@ namespace Snake
                 {
                     HeadDirection = new int2(1, 0)
                 });
+                
+                AddBuffer<SnakeSegmentElement>(entity);
             }
         }
     }
