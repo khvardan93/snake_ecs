@@ -1,0 +1,74 @@
+name: Build
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*.*.*']
+  pull_request:
+    branches: [main]
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build for ${{ matrix.targetPlatform }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        targetPlatform:
+          - WebGL
+          - Android
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          lfs: true
+
+      - name: Cache Library folder
+        uses: actions/cache@v4
+        with:
+          path: Library
+          key: Library-${{ matrix.targetPlatform }}-${{ hashFiles('Assets/**', 'Packages/**', 'ProjectSettings/**') }}
+          restore-keys: |
+            Library-${{ matrix.targetPlatform }}-
+            Library-
+
+      - name: Build project
+        uses: game-ci/unity-builder@v4
+        env:
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+          UNITY_SERIAL: ${{ secrets.UNITY_SERIAL }}
+        with:
+          targetPlatform: ${{ matrix.targetPlatform }}
+          unityVersion: 6000.3.18f1
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Build-${{ matrix.targetPlatform }}
+          path: build/${{ matrix.targetPlatform }}
+          retention-days: 14
+
+      - name: Zip WebGL build
+        if: matrix.targetPlatform == 'WebGL' && startsWith(github.ref, 'refs/tags/')
+        run: |
+          cd build/WebGL/WebGL
+          zip -r ../../../WebGL.zip .
+
+      - name: Locate APK
+        if: matrix.targetPlatform == 'Android' && startsWith(github.ref, 'refs/tags/')
+        run: |
+          apk=$(find build/Android -name '*.apk' | head -n 1)
+          cp "$apk" Android.apk
+
+      - name: Upload release assets
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            WebGL.zip
+            Android.apk
