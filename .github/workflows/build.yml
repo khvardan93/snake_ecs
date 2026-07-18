@@ -13,14 +13,8 @@ permissions:
 
 jobs:
   build:
-    name: Build for ${{ matrix.targetPlatform }}
+    name: Build for Android
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        targetPlatform:
-          - Android
-          - StandaloneWindows64
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -31,9 +25,9 @@ jobs:
         uses: actions/cache@v4
         with:
           path: Library
-          key: Library-${{ matrix.targetPlatform }}-${{ hashFiles('Assets/**', 'Packages/**', 'ProjectSettings/**') }}
+          key: Library-Android-${{ hashFiles('Assets/**', 'Packages/**', 'ProjectSettings/**') }}
           restore-keys: |
-            Library-${{ matrix.targetPlatform }}-
+            Library-Android-
             Library-
 
       - name: Build project
@@ -43,33 +37,26 @@ jobs:
           UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
           UNITY_SERIAL: ${{ secrets.UNITY_SERIAL }}
         with:
-          targetPlatform: ${{ matrix.targetPlatform }}
+          targetPlatform: Android
           unityVersion: 6000.3.18f1
 
       - name: Upload build artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Build-${{ matrix.targetPlatform }}
-          path: build/${{ matrix.targetPlatform }}
+          name: Build-Android
+          path: build/Android
           retention-days: 14
 
       - name: Locate APK
-        if: matrix.targetPlatform == 'Android'
         run: |
           apk=$(find build/Android -name '*.apk' | head -n 1)
           cp "$apk" Android.apk
 
-      - name: Zip Windows build
-        if: matrix.targetPlatform == 'StandaloneWindows64'
-        run: |
-          cd build/StandaloneWindows64/StandaloneWindows64
-          zip -r ../../../Windows.zip .
-
       - name: Upload release asset
         uses: actions/upload-artifact@v4
         with:
-          name: Release-${{ matrix.targetPlatform }}
-          path: ${{ matrix.targetPlatform == 'Android' && 'Android.apk' || 'Windows.zip' }}
+          name: Release-Android
+          path: Android.apk
           retention-days: 1
 
   release:
@@ -90,7 +77,6 @@ jobs:
         with:
           files: |
             Android.apk
-            Windows.zip
 
       - name: Publish rolling latest release
         if: github.ref == 'refs/heads/main'
@@ -103,4 +89,3 @@ jobs:
           target_commitish: ${{ github.sha }}
           files: |
             Android.apk
-            Windows.zip
