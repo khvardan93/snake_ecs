@@ -59,12 +59,6 @@ jobs:
           path: build/${{ matrix.targetPlatform }}
           retention-days: 14
 
-      - name: Zip WebGL build
-        if: matrix.targetPlatform == 'WebGL'
-        run: |
-          cd build/WebGL/WebGL
-          zip -r ../../../WebGL.zip .
-
       - name: Locate APK
         if: matrix.targetPlatform == 'Android'
         run: |
@@ -72,10 +66,11 @@ jobs:
           cp "$apk" Android.apk
 
       - name: Upload release asset
+        if: matrix.targetPlatform == 'Android'
         uses: actions/upload-artifact@v4
         with:
-          name: Release-${{ matrix.targetPlatform }}
-          path: ${{ matrix.targetPlatform == 'WebGL' && 'WebGL.zip' || 'Android.apk' }}
+          name: Release-Android
+          path: Android.apk
           retention-days: 1
 
       - name: Upload Pages artifact
@@ -114,7 +109,6 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            WebGL.zip
             Android.apk
 
       - name: Publish rolling latest release
@@ -127,5 +121,4 @@ jobs:
           make_latest: false
           target_commitish: ${{ github.sha }}
           files: |
-            WebGL.zip
             Android.apk
