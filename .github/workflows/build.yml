@@ -60,24 +60,23 @@ jobs:
           retention-days: 14
 
       - name: Zip WebGL build
-        if: matrix.targetPlatform == 'WebGL' && startsWith(github.ref, 'refs/tags/')
+        if: matrix.targetPlatform == 'WebGL'
         run: |
           cd build/WebGL/WebGL
           zip -r ../../../WebGL.zip .
 
       - name: Locate APK
-        if: matrix.targetPlatform == 'Android' && startsWith(github.ref, 'refs/tags/')
+        if: matrix.targetPlatform == 'Android'
         run: |
           apk=$(find build/Android -name '*.apk' | head -n 1)
           cp "$apk" Android.apk
 
-      - name: Upload release assets
-        if: startsWith(github.ref, 'refs/tags/')
-        uses: softprops/action-gh-release@v2
+      - name: Upload release asset
+        uses: actions/upload-artifact@v4
         with:
-          files: |
-            WebGL.zip
-            Android.apk
+          name: Release-${{ matrix.targetPlatform }}
+          path: ${{ matrix.targetPlatform == 'WebGL' && 'WebGL.zip' || 'Android.apk' }}
+          retention-days: 1
 
       - name: Upload Pages artifact
         if: matrix.targetPlatform == 'WebGL' && github.ref == 'refs/heads/main'
@@ -97,3 +96,36 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
+
+  release:
+    name: Publish GitHub Release
+    needs: build
+    if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download release assets
+        uses: actions/download-artifact@v4
+        with:
+          pattern: Release-*
+          merge-multiple: true
+
+      - name: Publish tagged release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            WebGL.zip
+            Android.apk
+
+      - name: Publish rolling latest release
+        if: github.ref == 'refs/heads/main'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: latest
+          name: Latest build
+          prerelease: true
+          make_latest: false
+          target_commitish: ${{ github.sha }}
+          files: |
+            WebGL.zip
+            Android.apk
