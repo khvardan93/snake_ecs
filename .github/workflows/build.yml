@@ -10,23 +10,11 @@ on:
 
 permissions:
   contents: write
-  pages: write
-  id-token: write
-
-concurrency:
-  group: pages
-  cancel-in-progress: false
 
 jobs:
   build:
-    name: Build for ${{ matrix.targetPlatform }}
+    name: Build for Android
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        targetPlatform:
-          - WebGL
-          - Android
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -37,9 +25,9 @@ jobs:
         uses: actions/cache@v4
         with:
           path: Library
-          key: Library-${{ matrix.targetPlatform }}-${{ hashFiles('Assets/**', 'Packages/**', 'ProjectSettings/**') }}
+          key: Library-Android-${{ hashFiles('Assets/**', 'Packages/**', 'ProjectSettings/**') }}
           restore-keys: |
-            Library-${{ matrix.targetPlatform }}-
+            Library-Android-
             Library-
 
       - name: Build project
@@ -49,48 +37,27 @@ jobs:
           UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
           UNITY_SERIAL: ${{ secrets.UNITY_SERIAL }}
         with:
-          targetPlatform: ${{ matrix.targetPlatform }}
+          targetPlatform: Android
           unityVersion: 6000.3.18f1
 
       - name: Upload build artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Build-${{ matrix.targetPlatform }}
-          path: build/${{ matrix.targetPlatform }}
+          name: Build-Android
+          path: build/Android
           retention-days: 14
 
       - name: Locate APK
-        if: matrix.targetPlatform == 'Android'
         run: |
           apk=$(find build/Android -name '*.apk' | head -n 1)
           cp "$apk" Android.apk
 
       - name: Upload release asset
-        if: matrix.targetPlatform == 'Android'
         uses: actions/upload-artifact@v4
         with:
           name: Release-Android
           path: Android.apk
           retention-days: 1
-
-      - name: Upload Pages artifact
-        if: matrix.targetPlatform == 'WebGL' && github.ref == 'refs/heads/main'
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: build/WebGL/WebGL
-
-  deploy-pages:
-    name: Deploy WebGL to GitHub Pages
-    needs: build
-    if: github.ref == 'refs/heads/main'
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
 
   release:
     name: Publish GitHub Release
