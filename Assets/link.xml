@@ -1,0 +1,10 @@
+<linker>
+  <assembly fullname="Unity.Entities" preserve="all" />
+  <assembly fullname="Unity.Scenes" preserve="all" />
+  <assembly fullname="Unity.Burst" preserve="all" />
+  <assembly fullname="Unity.Collections" preserve="all" />
+  <assembly fullname="Unity.Mathematics" preserve="all" />
+  <assembly fullname="Unity.Transforms" preserve="all" />
+  <assembly fullname="Unity.Entities.Graphics" preserve="all" />
+  <assembly fullname="Snake.Runtime" preserve="all" />
+</linker>
