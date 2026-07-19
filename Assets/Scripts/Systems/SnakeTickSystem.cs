@@ -27,7 +27,11 @@ namespace Snake
                 int2 center = config.GridSize / 2;
                 for (int i = 0; i < 3; i++)
                 {
-                    segments.Add(new SnakeSegmentElement { Position = new int2(center.x - i, center.y) });
+                    segments.Add(new SnakeSegmentElement
+                    {
+                        Position = new int2(center.x - i, center.y),
+                        PreviousPosition = new int2(center.x - i, center.y)
+                    });
                 }
                 
                 RespawnFood(ref state, configEntity, config);
@@ -50,6 +54,7 @@ namespace Snake
             if (math.any(newHead < 0) || math.any(newHead >= config.GridSize))
             {
                 snake.ValueRW.Alive = false;
+                snake.ValueRW.TickTimer = config.TickInterval; 
                 return;
             }
             
@@ -61,9 +66,12 @@ namespace Snake
                 if (math.all(segments[i].Position == newHead))
                 {
                     snake.ValueRW.Alive = false;
+                    snake.ValueRW.TickTimer = config.TickInterval; 
                     return;
                 }
             }
+            
+            int2 dropped = segments[segments.Length - 1].Position;
             
             segments.Insert(0, new SnakeSegmentElement { Position = newHead });
             
@@ -71,6 +79,15 @@ namespace Snake
                 RespawnFood(ref state, configEntity, config);
             else
                 segments.RemoveAt(segments.Length - 1);
+
+            for (int i = 0; i < segments.Length; i++)
+            {
+                var s = segments[i];
+                s.PreviousPosition = i + 1 < segments.Length
+                    ? segments[i + 1].Position                   // slide from where my follower stands
+                    : (ate ? s.Position : dropped);              // tail: vacated cell; grown tail: born in place
+                segments[i] = s;                                 // write the copy back
+            }
         }
         
         static void RespawnFood(ref SystemState state, Entity configEntity, in GameConfig config)

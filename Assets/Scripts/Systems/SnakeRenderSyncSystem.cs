@@ -46,13 +46,21 @@ namespace Snake
             var renderNow = em.GetBuffer<SegmentEntityElement>(configEntity);
             float2 half = (float2)(config.GridSize - 1) * 0.5f;
 
+            var snakeState = em.GetComponentData<SnakeState>(configEntity);
+            float t = math.saturate(snakeState.TickTimer / config.TickInterval);
+            
             for (int i = 0; i < renderNow.Length; i++)
             {
                 bool active = i < segCount;
+                // above the em.SetComponentData call, inside the loop body:
+                float2 cell = math.lerp((float2)segments[i].PreviousPosition,
+                    (float2)segments[i].Position, t);
+                
                 em.SetComponentData(renderNow[i].Value, new LocalTransform
                 {
-                    Position = active ? new float3(segments[i].Position.x - half.x,
-                        segments[i].Position.y - half.y, 0f) : float3.zero,
+                    Position = active
+                        ? new float3(cell.x - half.x, cell.y - half.y, 0f)
+                        : float3.zero,
                     Rotation = quaternion.identity,
                     Scale = i == 0 ? 0.95f : 0.85f
                 });

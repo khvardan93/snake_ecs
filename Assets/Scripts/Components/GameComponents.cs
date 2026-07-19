@@ -31,6 +31,7 @@ namespace Snake
     public struct SnakeSegmentElement : IBufferElementData
     {
         public int2 Position; // index 0 = head
+        public int2 PreviousPosition;
     }
     
     [InternalBufferCapacity(0)]
