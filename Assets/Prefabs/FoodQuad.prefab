@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: 2179032790630997708}
   - component: {fileID: 9039344683626369262}
   - component: {fileID: 1207850703965377146}
+  - component: {fileID: -6592050871104125261}
   m_Layer: 0
   m_Name: FoodQuad
   m_TagString: Untagged
@@ -126,3 +127,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fca29511093247d0bf83cabd656bd817, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Snake.Runtime::Snake.FoodMarkerAuthoring
+--- !u!114 &-6592050871104125261
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2226820468553816863}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8393e0a97a73447f9753fe2a40e1f8b8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Snake.Runtime::Snake.RenderColorAuthoring

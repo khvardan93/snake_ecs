@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: 666228626569836314}
   - component: {fileID: 2369175111917815168}
   - component: {fileID: 4761840433344665370}
+  - component: {fileID: -4272175721849300977}
   m_Layer: 0
   m_Name: SnakeQuad
   m_TagString: Untagged
@@ -126,3 +127,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e8f26d2d029d4d16baad6c51e8bef578, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Snake.Runtime::Snake.HeadMarkerAuthoring
+--- !u!114 &-4272175721849300977
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4253119018324657198}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8393e0a97a73447f9753fe2a40e1f8b8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Snake.Runtime::Snake.RenderColorAuthoring
